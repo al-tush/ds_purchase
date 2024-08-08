@@ -449,42 +449,8 @@ class DSPurchaseManager extends ChangeNotifier {
   }
 
   String replaceTags(AdaptyPaywallProduct product, String text) {
-    int getDays() {
-      var subscriptionDays = product.subscriptionDetails?.subscriptionPeriod.numberOfUnits ?? 1;
-      switch (product.subscriptionDetails?.subscriptionPeriod.unit) {
-        case null:
-        case AdaptyPeriodUnit.unknown:
-        case AdaptyPeriodUnit.day:
-          break;
-        case AdaptyPeriodUnit.week:
-          subscriptionDays *= 7;
-          break;
-        case AdaptyPeriodUnit.month:
-          subscriptionDays *= 30;
-          break;
-        case AdaptyPeriodUnit.year:
-          subscriptionDays *= 365;
-          break;
-      }
-      return subscriptionDays;
-    }
+    final dsProduct = product.toAppProduct();
 
-    final days = getDays();
-    final dayPrice = product.price.amount / days;
-    final String dayPriceStr;
-    if (dayPrice > 10) {
-      dayPriceStr = dayPrice.round().toString();
-    } else if (dayPrice >= 1) {
-      dayPriceStr = dayPrice.toStringAsPrecision(1);
-    } else {
-      dayPriceStr = dayPrice.toStringAsPrecision(2);
-    }
-
-    text = text.replaceAll('{days}', '$days');
-    text = text.replaceAll('{price_per_day}', '${product.price.currencySymbol}$dayPriceStr');
-
-    text = text.replaceAll('{price}', '${product.price.localizedString}');
-    text = text.replaceAll('{subscription_period}', '${product.subscriptionDetails?.localizedSubscriptionPeriod}');
-    return text;
+    return dsProduct.replaceTags(text);
   }
 }
