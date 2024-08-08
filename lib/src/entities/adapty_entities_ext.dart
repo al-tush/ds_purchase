@@ -8,10 +8,12 @@ extension AdaptyProductExt on AdaptyPaywallProduct {
       price: price.amount,
       currencyCode: price.currencyCode,
       currencySymbol: price.currencySymbol,
+      localizedPrice: price.localizedString,
       title: localizedTitle,
       description: localizedDescription,
       androidOfferId: subscriptionDetails?.androidOfferId,
       subscriptionPeriod: subscriptionDetails?.subscriptionPeriod.toAppPeriod(),
+      localizedSubscriptionPeriod: subscriptionDetails?.localizedSubscriptionPeriod,
     );
   }
 }
