@@ -99,6 +99,7 @@ class DSPurchaseManager extends ChangeNotifier {
   late final Set<DSPaywallPlacement> _initPaywalls;
 
   DSPaywall? _paywall;
+  AdaptyUIView? _paywallView;
 
   DSPaywall? get paywall => _paywall;
 
@@ -183,9 +184,12 @@ class DSPurchaseManager extends ChangeNotifier {
             adaptyCustomUserId?.let((id) => config.withCustomerUserId(id));
             _adaptyUserId = adaptyCustomUserId;
 
+            await Adapty().setLogLevel(AdaptyLogLevel.verbose);
+
             await Adapty().activate(
               configuration: config,
             );
+            await AdaptyUI().activate(observer: _DSAdaptyUIObserver(this));
           } catch (e, stack) {
             notifyListeners();
             Fimber.e('adapty $e', stacktrace: stack);
@@ -566,6 +570,48 @@ class DSPurchaseManager extends ChangeNotifier {
     await _updatePaywall(allowFallbackNative: allowFallbackNative, adaptyLoadTimeout: const Duration(seconds: 1));
   }
 
+  bool get hasPaywallBuilder {
+    final pw = _paywall;
+    if (pw == null) {
+      return false;
+    }
+    if (pw is! DSAdaptyPaywall) {
+      return false;
+    }
+    return pw.hasPaywallBuilder;
+  }
+
+  Future<bool> tryShowPaywallBuilder() async {
+    final pw = _paywall;
+    if (pw == null) {
+      Fimber.e('Paywall is not ready', attributes: {
+        'paywall_id': _paywallId,
+      });
+      return false;
+    }
+    if (pw is! DSAdaptyPaywall) {
+      Fimber.e('Paywall is not Adapty', attributes: {
+        'paywall_id': _paywallId,
+      });
+      return false;
+    }
+    if (!pw.hasPaywallBuilder) {
+      return false;
+    }
+
+    try {
+      _paywallView = await AdaptyUI().createPaywallView(
+        paywall: pw.data,
+        preloadProducts: true,
+      );
+      await _paywallView!.present();
+      return true;
+    } catch (e, stack) {
+      Fimber.e('$e', stacktrace: stack);
+      return false;
+    }
+  }
+
   Future<void> _updateAdaptyPurchases(AdaptyProfile? profile) async {
     final newVal = (profile?.subscriptions.values ?? []).any((e) => e.isActive);
     DSMetrica.reportEvent('Paywall: update purchases (internal)', attributes: {
@@ -731,4 +777,48 @@ class DSPurchaseManager extends ChangeNotifier {
       throw Exception('Failed to set Facebook advertiser tracking: ${e.message}.');
     }
   }
+}
+
+/// https://adapty.io/docs/flutter-handling-events
+class _DSAdaptyUIObserver extends AdaptyUIObserver {
+  final DSPurchaseManager _owner;
+
+  _DSAdaptyUIObserver(this._owner);
+
+  @override
+  void paywallViewDidPerformAction(AdaptyUIView view, AdaptyUIAction action) {
+    switch (action) {
+      case OpenUrlAction(url: final url):
+        DSMetrica.reportEvent('AdaptyBuilder open url', attributes: {
+          'url': url,
+        });
+        break;
+      case CloseAction():
+      case AndroidSystemBackAction():
+        DSMetrica.reportEvent('paywall_close', fbSend: true, attributes: {
+          'type': 'builder',
+        },
+        );
+        view.dismiss();
+        break;
+      case CustomAction(action: final action):
+        DSMetrica.reportEvent('AdaptyBuilder custom action', attributes: {
+          'action': action,
+        });
+        // TBD
+        break;
+    }
+  }
+
+  @override
+  void paywallViewDidFailRendering(AdaptyUIView view, AdaptyError error) {
+    Fimber.e('AdaptyBuilder fail rendering $error', stacktrace: StackTrace.current);
+  }
+
+  @override
+  void paywallViewDidFinishRestore(AdaptyUIView view, AdaptyProfile profile) {
+    _owner._updateAdaptyPurchases(profile);
+  }
+
+
 }
