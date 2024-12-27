@@ -53,7 +53,7 @@ class DSPurchaseManager extends ChangeNotifier {
   }) : _adaptyKey = adaptyKey
   {
     assert(_instance == null);
-    assert(nativeRemoteConfig != null || providerMode != DSProviderMode.adaptyOnly, 'set in_app_purchase provider to use nativeRemoteConfig');
+    assert(nativeRemoteConfig != null || providerMode == DSProviderMode.adaptyOnly, 'set in_app_purchase provider to use nativeRemoteConfig');
     _paywallPlacementTranslator = paywallPlacementTranslator;
     _oneSignalChanged = oneSignalChanged;
     _nativeRemoteConfig = nativeRemoteConfig?.let((v) => jsonDecode(v)) ?? {};

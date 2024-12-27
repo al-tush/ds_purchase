@@ -45,7 +45,27 @@ sealed class DSProduct {
   double get price;
   String? get currencyCode;
   String? get currencySymbol;
+  String get currencySymbolExt {
+    if ((currencySymbol ?? '').isNotEmpty) {
+      return currencySymbol!;
+    }
+
+    // https://www.xe.com/symbols/
+    if (currencyCode == 'USD') {
+      return 'US\$';
+    } else if (currencyCode == 'EUR') {
+      return '€';
+    } else if (currencyCode == 'GBP') {
+      return '£';
+    } else if (currencyCode == 'RUB') {
+      return '₽';
+    }
+
+    return currencyCode ?? '';
+  }
+
   DSSubscriptionPeriod? get subscriptionPeriod;
+  DSSubscriptionPeriod? get trialPeriod;
   String? get offerId;
   String? get localizedSubscriptionPeriod;
   String? get localizedPrice;
@@ -55,7 +75,7 @@ sealed class DSProduct {
   bool get isTrial;
 
   String replaceTags(String text) {
-    final priceSymbol = currencySymbol ?? currencyCode ?? '';
+    final priceSymbol = currencySymbolExt;
     final locPrice = localizedPrice ?? '$price $priceSymbol';
 
     text = text.replaceAll('{price}', locPrice);
@@ -92,6 +112,7 @@ sealed class DSProduct {
 }
 
 sealed class DSPaywall {
+  String get name;
   String get providerName;
   String get placementId;
   Map<String, dynamic> get remoteConfig;
@@ -112,6 +133,8 @@ class DSAdaptyPaywall extends DSPaywall {
   @override
   String get placementId => data.placementId;
   @override
+  String get name => data.name;
+  @override
   Map<String, dynamic> get remoteConfig => data.remoteConfig?.dictionary ?? const {};
   @override
   List<DSProduct> get products => adaptyProducts.cast<DSProduct>();
@@ -125,6 +148,8 @@ class DSAdaptyPaywall extends DSPaywall {
 class DSInAppPaywall extends DSPaywall {
   @override
   String get providerName => 'native';
+  @override
+  String get name => 'native';
   @override
   String placementId;
   @override
@@ -163,6 +188,9 @@ class DSAdaptyProduct extends DSProduct {
   @override
   late final DSSubscriptionPeriod? subscriptionPeriod = data.subscription?.period.let((v) => DSSubscriptionPeriod.fromAdapty(v));
   @override
+  // ToDo: TBD
+  late final DSSubscriptionPeriod?  trialPeriod = isTrial ? data.subscription?.offer?.phases.first.subscriptionPeriod.let((v) => DSSubscriptionPeriod.fromAdapty(v)) : null;
+  @override
   String? get offerId => data.subscription?.offer?.identifier.id;
   @override
   String? get localizedSubscriptionPeriod => data.subscription?.localizedPeriod;
@@ -187,6 +215,9 @@ sealed class DSInAppProduct extends DSProduct {
 
   @override
   String? get currencyCode => data.currencyCode;
+
+  @override
+  DSSubscriptionPeriod? get trialPeriod => throw Exception('TBD');
 }
 
 class DSInAppGoogleProduct extends DSInAppProduct {
@@ -217,6 +248,7 @@ class DSInAppGoogleProduct extends DSInAppProduct {
 
   @override
   late final DSSubscriptionPeriod? subscriptionPeriod = offer?.let((v) => DSSubscriptionPeriod.fromInAppGoogle(v.pricingPhases));
+
   @override
   String? offerId;
   @override
