@@ -13,10 +13,10 @@ packages:
     dependency: transitive
     description:
       name: adapty_flutter
-      sha256: "13390ca5987adffe6449137ad1b011bfc5723742a782f455434b9344e51d0c25"
+      sha256: "044a9ccd2139b9feb7c521891856c9ac37b044b878d9e25986c284d442da8aa9"
       url: "https://pub.dev"
     source: hosted
-    version: "3.4.1"
+    version: "3.10.0"
   adjust_sdk:
     dependency: transitive
     description:
@@ -148,17 +148,18 @@ packages:
   ds_common:
     dependency: transitive
     description:
-      path: "/Users/altush/Projects/ds_common"
-      relative: false
-    source: path
-    version: "2.5.0"
+      name: ds_common
+      sha256: "241ed0370e8008840d2ad1ec24bc391670ff102403d406139ec68a2ee22a85d1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.7.0"
   ds_purchase:
     dependency: "direct main"
     description:
       path: ".."
       relative: true
     source: path
-    version: "2.1.3"
+    version: "2.1.5"
   fake_async:
     dependency: transitive
     description:
@@ -322,10 +323,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_uxcam
-      sha256: dba3ee6fbc242e77fc1e49f04c998859f26994e1a3b97f4034edde5f7cfac0ec
+      sha256: d7ae70fce91eea4dc608f8d859a87c03073312bf034559325b1f5c1ef65d8e07
       url: "https://pub.dev"
     source: hosted
-    version: "2.6.0"
+    version: "2.7.0"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -356,18 +357,18 @@ packages:
     dependency: transitive
     description:
       name: in_app_purchase
-      sha256: "960f26a08d9351fb8f89f08901f8a829d41b04d45a694b8f776121d9e41dcad6"
+      sha256: "5cddd7f463f3bddb1d37a72b95066e840d5822d66291331d7f8f05ce32c24b6c"
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.0"
+    version: "3.2.3"
   in_app_purchase_android:
     dependency: transitive
     description:
       name: in_app_purchase_android
-      sha256: fa1befc0e25374d16ca532154546503f25a865ed6e7ea5641f4f2b75b092d669
+      sha256: "9f320659b13e34529cd7d53508f7ead500f03b42e7a2435bd4efce5210546051"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.6+12"
+    version: "0.4.0+3"
   in_app_purchase_platform_interface:
     dependency: transitive
     description:
@@ -380,10 +381,10 @@ packages:
     dependency: transitive
     description:
       name: in_app_purchase_storekit
-      sha256: "250b3865da1f4abf0d0e1eda9556734ee22ab5ebfe47a59227d8d9aeaa1c03e8"
+      sha256: aedbeea5beae10af3e5c380b65049842715b2bb014983e2a48b9006473f33cd9
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.20+2"
+    version: "0.4.4"
   integration_test:
     dependency: "direct dev"
     description: flutter
@@ -732,4 +733,4 @@ packages:
     version: "1.0.4"
 sdks:
   dart: ">=3.7.0-0 <4.0.0"
-  flutter: ">=3.24.0"
+  flutter: ">=3.27.0"

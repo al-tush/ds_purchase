@@ -208,7 +208,7 @@ class DSPurchaseManager extends ChangeNotifier {
             await Adapty().activate(
               configuration: config,
             );
-            AdaptyUI().setObserver(_DSAdaptyUIObserver(this));
+            AdaptyUI().setPaywallsEventsObserver(_DSAdaptyUIEventsObserver(this));
           } catch (e, stack) {
             notifyListeners();
             Fimber.e('adapty $e', stacktrace: stack);
@@ -890,13 +890,13 @@ class DSPurchaseManager extends ChangeNotifier {
 }
 
 /// https://adapty.io/docs/flutter-handling-events
-class _DSAdaptyUIObserver extends AdaptyUIObserver {
+class _DSAdaptyUIEventsObserver extends AdaptyUIPaywallsEventsObserver {
   final DSPurchaseManager _owner;
 
-  _DSAdaptyUIObserver(this._owner);
+  _DSAdaptyUIEventsObserver(this._owner);
 
   @override
-  void paywallViewDidPerformAction(AdaptyUIView view, AdaptyUIAction action) {
+  void paywallViewDidPerformAction(AdaptyUIPaywallView view, AdaptyUIAction action) {
     switch (action) {
       case OpenUrlAction(url: final url):
         DSMetrica.reportEvent('AdaptyBuilder open url', attributes: {
@@ -920,12 +920,12 @@ class _DSAdaptyUIObserver extends AdaptyUIObserver {
   }
 
   @override
-  void paywallViewDidFailRendering(AdaptyUIView view, AdaptyError error) {
+  void paywallViewDidFailRendering(AdaptyUIPaywallView view, AdaptyError error) {
     Fimber.e('AdaptyBuilder fail rendering $error', stacktrace: StackTrace.current);
   }
 
   @override
-  void paywallViewDidFinishRestore(AdaptyUIView view, AdaptyProfile profile) {
+  void paywallViewDidFinishRestore(AdaptyUIPaywallView view, AdaptyProfile profile) {
     _owner._updateAdaptyPurchases(profile);
   }
 }

@@ -139,7 +139,7 @@ class DSAdaptyPaywall extends DSPaywall {
   });
 
   @override
-  String get placementId => data.placementId;
+  String get placementId => data.placement.id;
   @override
   String get name => data.name;
   @override

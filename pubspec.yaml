@@ -16,13 +16,14 @@ dependencies:
   collection: ^1.16.0
 
   ds_common: ^2.1.1
+#    path: /Users/altush/Projects/ds_common
 
-  adapty_flutter: ^3.4.1
+  adapty_flutter: ^3.10.0
 
-  in_app_purchase: ^3.2.0
+  in_app_purchase: ^3.2.3
   in_app_purchase_platform_interface: ^1.4.0
-  in_app_purchase_android: ^0.3.6+12
-  in_app_purchase_storekit: ^0.3.20+2
+  in_app_purchase_android: ^0.4.0+3
+  in_app_purchase_storekit: ^0.4.4
 
 dev_dependencies:
   flutter_test:
