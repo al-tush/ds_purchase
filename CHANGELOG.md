@@ -1,3 +1,6 @@
+## 2.2.0
+- update adapty_flutter to ^3.10.0 (Migrated to PBL v7)
+
 ## 2.1.5
 - add allowedForPremium flag support (can subscribe more than one subscription)
 
