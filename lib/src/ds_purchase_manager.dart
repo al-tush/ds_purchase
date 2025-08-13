@@ -700,6 +700,8 @@ class DSPurchaseManager extends ChangeNotifier {
   }
 
   Future<void> _updateInAppPurchases(List<PurchaseDetails> purchases) async {
+    if (providerMode == DSProviderMode.adaptyOnly) return;
+
     var newVal = (purchases).any((e) => e.status == PurchaseStatus.purchased);
     if (extraInAppPurchaseCheck != null) {
       newVal = await extraInAppPurchaseCheck!(purchases, newVal);
