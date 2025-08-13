@@ -1,3 +1,6 @@
+## 2.2.1
+- fix updateInAppPurchases for adaptyOnly providerMode
+
 ## 2.2.0
 - update adapty_flutter to ^3.10.0 (Migrated to PBL v7)
 
