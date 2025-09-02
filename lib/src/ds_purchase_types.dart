@@ -70,6 +70,7 @@ sealed class DSProduct {
     return currencyCode ?? '';
   }
 
+  bool get isSubscription;
   DSSubscriptionPeriod? get subscriptionPeriod;
   DSSubscriptionPeriod? get trialPeriod;
   String? get offerId;
@@ -194,6 +195,8 @@ class DSAdaptyProduct extends DSProduct {
   @override
   String? get currencySymbol => data.price.currencySymbol;
   @override
+  bool get isSubscription => data.subscription != null;
+  @override
   late final DSSubscriptionPeriod? subscriptionPeriod = data.subscription?.period.let((v) => DSSubscriptionPeriod.fromAdapty(v));
   @override
   // ToDo: TBD
@@ -269,6 +272,9 @@ class DSInAppGoogleProduct extends DSInAppProduct {
   }
 
   @override
+  // ToDo: TBD
+  bool get isSubscription => true;
+  @override
   late final DSSubscriptionPeriod? subscriptionPeriod = offer?.let((v) => DSSubscriptionPeriod.fromInAppGoogle(v.pricingPhases));
 
   @override
@@ -305,6 +311,9 @@ class DSInAppAppleProduct extends DSInAppProduct {
   late final DSSubscriptionPeriod? subscriptionPeriod = appleData.skProduct.subscriptionPeriod?.let((v) => DSSubscriptionPeriod.fromInAppApple(v));
   @override
   String? offerId;
+  @override
+  // ToDo: TBD
+  bool get isSubscription => true;
   @override
   // ToDo: TBD
   String? get subscriptionGroupIdentifierIOS => null;
@@ -349,6 +358,9 @@ class DSInAppApple2Product extends DSInAppProduct {
     return appleData.sk2Product.subscription?.promotionalOffers.firstWhere((e) => e.id == offerId);
   }
 
+  @override
+  // ToDo: TBD
+  bool get isSubscription => true;
   @override
   late final DSSubscriptionPeriod? subscriptionPeriod = appleData.sk2Product.subscription?.let((v) => DSSubscriptionPeriod.fromInAppApple2(v.subscriptionPeriod));
   @override

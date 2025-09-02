@@ -693,10 +693,12 @@ class DSPurchaseManager extends ChangeNotifier {
             .join(','),
         'adapty_id': profile.profileId,
         'sub_data': profile.subscriptions.entries.map((e) => '${e.key} -> ${e.value}').join(';'),
+        'non_sub_data': profile.nonSubscriptions.entries.map((e) => '${e.key} -> ${e.value}').join(';'),
       },
       'is_premium2': newVal.toString(),
     });
     await _setPremium(newVal);
+    notifyListeners();
   }
 
   Future<void> _updateInAppPurchases(List<PurchaseDetails> purchases) async {
@@ -736,7 +738,7 @@ class DSPurchaseManager extends ChangeNotifier {
 
     final isTrial = product.isTrial;
 
-    bool isPurchased() {
+    bool isSubscriptionPurchased() {
       if (product is DSAdaptyProduct) {
         var id = product.data.vendorProductId;
         product.data.subscription?.basePlanId?.let((v) => id += ':$v');
@@ -754,6 +756,23 @@ class DSPurchaseManager extends ChangeNotifier {
       }
     }
 
+    bool isNonSubscriptionPurchased() {
+      if (product is DSAdaptyProduct) {
+        final id = product.id;
+        try {
+          return adaptyProfile.nonSubscriptions.values.any((s) => s.any((e) => e.vendorProductId == id));
+        } catch (e, stack) {
+          Fimber.e('$e', stacktrace: stack, attributes: {
+            'product_id': product.id,
+          });
+          return false;
+        }
+      } else {
+        // ToDo: need to be fixed
+        return isPremium;
+      }
+    }
+
     final attrs = {
       'provider': product.providerName,
       'paywall_id': placementId,
@@ -763,9 +782,11 @@ class DSPurchaseManager extends ChangeNotifier {
       'vendor_offer_id': product.offerId ?? 'null',
       'placement': placementDefinedId,
       'is_trial': isTrial ? 1 : 0,
+      'is_subscription': product.isSubscription ? 1 : 0,
     };
     DSMetrica.reportEvent('paywall_buy', fbSend: true, attributes: attrs);
     DSAdLocker.appOpenLockUntilAppResume();
+    var done = false;
     try {
       _inBuy = true;
       try {
@@ -799,7 +820,9 @@ class DSPurchaseManager extends ChangeNotifier {
       } catch (e, stack) {
         Fimber.e('$e', stacktrace:  stack);
       }
-      if (isPurchased()) {
+      done = product.isSubscription && isSubscriptionPurchased()
+          || !product.isSubscription && isNonSubscriptionPurchased();
+      if (done) {
         DSMetrica.reportEvent('paywall_complete_buy', fbSend: true, attributes: attrs);
         if (!kDebugMode && Platform.isIOS) {
           unawaited(sendFbPurchase(
@@ -814,7 +837,7 @@ class DSPurchaseManager extends ChangeNotifier {
       _inBuy = false;
       DSAdLocker.appOpenUnlockUntilAppResume(andLockFor: const Duration(seconds: 5));
     }
-    return isPurchased();
+    return done;
   }
 
   Future<void> _setPremium(bool value) async {
