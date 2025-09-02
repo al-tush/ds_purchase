@@ -13,10 +13,10 @@ packages:
     dependency: transitive
     description:
       name: adapty_flutter
-      sha256: "044a9ccd2139b9feb7c521891856c9ac37b044b878d9e25986c284d442da8aa9"
+      sha256: "1ae3df6cbbdd1f6d3c7b2230a9d743bc297727d22f72ebd3ea8ff0e6056aba17"
       url: "https://pub.dev"
     source: hosted
-    version: "3.10.0"
+    version: "3.11.0"
   adjust_sdk:
     dependency: transitive
     description:
@@ -159,7 +159,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "2.1.5"
+    version: "2.2.1"
   fake_async:
     dependency: transitive
     description:

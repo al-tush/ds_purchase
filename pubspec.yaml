@@ -18,7 +18,7 @@ dependencies:
   ds_common: ^2.1.1
 #    path: /Users/altush/Projects/ds_common
 
-  adapty_flutter: ^3.10.0
+  adapty_flutter: ^3.11.0
 
   in_app_purchase: ^3.2.3
   in_app_purchase_platform_interface: ^1.4.0
