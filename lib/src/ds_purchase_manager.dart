@@ -240,8 +240,11 @@ class DSPurchaseManager extends ChangeNotifier {
             DSMetrica.reportEvent('Purchase changed', attributes: {
               'adapty_id': profile.profileId,
               'subscriptions': profile.subscriptions.keys.join(','),
-              'sub_data': profile.subscriptions.entries.map((e) => '${e.key} -> ${e.value}').join(';'),
+              'sub_count': profile.subscriptions.length.toString(),
+              'non_sub_count': profile.nonSubscriptions.entries.where((e) => e.value.any((p) => !p.isRefund)).length.toString(),
               'access_levels': profile.accessLevels.entries.map((e) => '${e.key} -> ${e.value}').join(';'),
+              'sub_data': profile.subscriptions.entries.map((e) => '${e.key} -> ${e.value}').join(';'),
+              'non_sub_data': profile.nonSubscriptions.entries.map((e) => '${e.key} -> ${e.value}').join(';'),
             });
             var newVal = profile.subscriptions.values.any((e) => e.isActive);
             if (extraAdaptyPurchaseCheck != null) {
@@ -692,6 +695,9 @@ class DSPurchaseManager extends ChangeNotifier {
             .map((v) => MapEntry('', 'vendor_id: ${v.vendorProductId} active: ${v.isActive} refund: ${v.isRefund}'))
             .join(','),
         'adapty_id': profile.profileId,
+        'sub_count': profile.subscriptions.length.toString(),
+        'non_sub_count': profile.nonSubscriptions.entries.where((e) => e.value.any((p) => !p.isRefund)).length.toString(),
+        'access_levels': profile.accessLevels.entries.map((e) => '${e.key} -> ${e.value}').join(';'),
         'sub_data': profile.subscriptions.entries.map((e) => '${e.key} -> ${e.value}').join(';'),
         'non_sub_data': profile.nonSubscriptions.entries.map((e) => '${e.key} -> ${e.value}').join(';'),
       },
