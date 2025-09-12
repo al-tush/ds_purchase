@@ -1,3 +1,9 @@
+## 2.3.0
+- add non-subscription purchases support
+- update Adapty lib
+- add fields to 'Purchase changed' and 'Paywall: update purchases (internal)' events
+- update Adapty -> Metrica sync as described in https://adapty.io/docs/appmetrica?current-os=Flutter#sdk-configuration
+
 ## 2.2.1
 - fix updateInAppPurchases for adaptyOnly providerMode
 
