@@ -362,7 +362,8 @@ class DSPurchaseManager extends ChangeNotifier {
           await Adapty().identify(adaptyCustomUserId);
         }
         for (var i = 0; i < 300; i++) {
-          if (DSMetrica.userProfileID() != null && DSMetrica.yandexId.isNotEmpty) break;
+          if (DSMetrica.userProfileID() != null
+              && (await DSMetrica.getYandexDeviceIdHash()).isNotEmpty) break;
           await Future.delayed(const Duration(milliseconds: 200));
         }
         final id = DSMetrica.userProfileID();
@@ -371,10 +372,11 @@ class DSPurchaseManager extends ChangeNotifier {
         }
 
         yield ('appmetrica_profile_id', id);
-        if (DSMetrica.yandexId.isEmpty) {
+        final deviceHash = await DSMetrica.getYandexDeviceIdHash();
+        if (deviceHash.isEmpty) {
           Fimber.e('metrica_user_id initialized incorrectly - yandexId was not ready', stacktrace: StackTrace.current);
         }
-        yield ('appmetrica_device_id', DSMetrica.yandexId);
+        yield ('appmetrica_device_id', deviceHash);
       });
 
       updateProfile('adjust', () async* {

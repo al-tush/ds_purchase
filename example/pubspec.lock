@@ -21,10 +21,10 @@ packages:
     dependency: transitive
     description:
       name: adjust_sdk
-      sha256: "1f6ecfbc1cddd5ad41199c466c61db6bbaad250fbfe6ebdecb06a24a1cce1e15"
+      sha256: e1f1f9ee8d3370b7ba55bccd1b65053ba1bcea53de378eb510c8c808ffaefa34
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.1"
+    version: "5.4.2"
   amplitude_flutter:
     dependency: transitive
     description:
@@ -149,10 +149,10 @@ packages:
     dependency: transitive
     description:
       name: ds_common
-      sha256: "241ed0370e8008840d2ad1ec24bc391670ff102403d406139ec68a2ee22a85d1"
+      sha256: "0f45e0c5e5144c819d8aa34e90b504f6f404d5576a01e4cf0936a48d0a40576f"
       url: "https://pub.dev"
     source: hosted
-    version: "2.7.0"
+    version: "2.7.2"
   ds_purchase:
     dependency: "direct main"
     description:
