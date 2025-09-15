@@ -1,3 +1,6 @@
+## 2.3.1
+- don't send appmetrica_profile_id for DSMetrica.lockedMetricaProfile (otherwise matching is impossible)
+
 ## 2.3.0
 - add non-subscription purchases support
 - update Adapty lib

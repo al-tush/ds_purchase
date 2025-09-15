@@ -1,6 +1,6 @@
 name: ds_purchase
 description: Purchase components for altush Flutter projects. Currently supports Adapty only
-version: 2.3.0
+version: 2.3.1
 homepage: https://github.com/al-tush/ds_purchase
 
 environment:
