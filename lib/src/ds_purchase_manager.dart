@@ -48,9 +48,11 @@ class DSPurchaseManager extends ChangeNotifier {
     required this.localeCallback,
     DSPaywallPlacementTranslator? paywallPlacementTranslator,
     VoidCallback? oneSignalChanged,
+    @Deprecated('Not tested for the last updates')
     String? nativeRemoteConfig,
     this.providerMode = DSProviderMode.adaptyOnly,
     this.extraAdaptyPurchaseCheck,
+    @Deprecated('Not tested for the last updates')
     this.extraInAppPurchaseCheck,
   }) : _adaptyKey = adaptyKey
   {
@@ -98,6 +100,7 @@ class DSPurchaseManager extends ChangeNotifier {
   bool get isTempPremium => _isTempPremium;
 
   Future<bool> Function(DSAdaptyProfile? profile, bool premium)? extraAdaptyPurchaseCheck;
+  @Deprecated('Not tested for the last updates')
   Future<bool> Function(List<PurchaseDetails> purchases, bool premium)? extraInAppPurchaseCheck;
 
   bool get purchasesDisabled => _purchasesDisabled;
@@ -759,6 +762,7 @@ class DSPurchaseManager extends ChangeNotifier {
         } catch (e, stack) {
           Fimber.e('$e', stacktrace: stack, attributes: {
             'product_id': product.id,
+            'id': id,
           });
           return false;
         }
