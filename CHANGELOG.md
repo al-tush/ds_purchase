@@ -1,3 +1,6 @@
+## 2.3.2
+- update to Flutter 3.35 and rollup deps
+
 ## 2.3.1
 - don't send appmetrica_profile_id for DSMetrica.lockedMetricaProfile (otherwise matching is impossible)
 
