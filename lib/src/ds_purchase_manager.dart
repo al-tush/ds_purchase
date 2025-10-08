@@ -242,7 +242,9 @@ class DSPurchaseManager extends ChangeNotifier {
             _adaptyProfile = profile;
             DSMetrica.reportEvent('Purchase changed', attributes: {
               'adapty_id': profile.profileId,
-              'subscriptions': profile.subscriptions.keys.join(','),
+              'subscriptions': profile.subscriptions.values
+                  .map((v) => MapEntry('', 'vendor_id: ${v.vendorProductId} active: ${v.isActive} refund: ${v.isRefund}'))
+                  .join(','),
               'sub_count': profile.subscriptions.length.toString(),
               'non_sub_count': profile.nonSubscriptions.entries.where((e) => e.value.any((p) => !p.isRefund)).length.toString(),
               'access_levels': profile.accessLevels.entries.map((e) => '${e.key} -> ${e.value}').join(';'),
@@ -258,8 +260,8 @@ class DSPurchaseManager extends ChangeNotifier {
                 'adapty_id': profile.profileId,
                 'sub_data': profile.subscriptions.entries.map((e) => '${e.key} -> ${e.value}').join(';'),
               });
-              await _setPremium(false);
             }
+            await _setPremium(newVal);
           });
 
           await relogin(adaptyCustomUserId);
@@ -720,7 +722,9 @@ class DSPurchaseManager extends ChangeNotifier {
     if (providerMode == DSProviderMode.adaptyOnly) return;
 
     var newVal = (purchases).any((e) => e.status == PurchaseStatus.purchased);
+    // ignore: deprecated_member_use_from_same_package
     if (extraInAppPurchaseCheck != null) {
+      // ignore: deprecated_member_use_from_same_package
       newVal = await extraInAppPurchaseCheck!(purchases, newVal);
     }
     DSMetrica.reportEvent('Paywall: update purchases (in_app_internal)', attributes: {
