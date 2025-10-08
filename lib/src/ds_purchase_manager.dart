@@ -745,9 +745,17 @@ class DSPurchaseManager extends ChangeNotifier {
 
   var _inBuy = false;
 
-  Future<bool> buy({required DSProduct product}) async {
+  Future<bool> buy({
+    required DSProduct product,
+    AdaptyPurchaseParameters? parameters,
+  }) async {
     if (_inBuy) {
       Fimber.w('duplicated buy call', stacktrace: StackTrace.current);
+      return false;
+    }
+
+    if (product is DSStubProduct) {
+      Fimber.e('Product is DSStubProduct', stacktrace: StackTrace.current);
       return false;
     }
 
@@ -795,10 +803,13 @@ class DSPurchaseManager extends ChangeNotifier {
       'vendor_product': product.id,
       'paywall_type': paywallType,
       'variant_paywall': paywallVariant,
+      'vendor_base_plan_id': product.basePlanId ?? 'null',
       'vendor_offer_id': product.offerId ?? 'null',
       'placement': placementDefinedId,
       'is_trial': isTrial ? 1 : 0,
       'is_subscription': product.isSubscription ? 1 : 0,
+      if (parameters != null)
+        'adapty_parameters': '$parameters',
     };
     DSMetrica.reportEvent('paywall_buy', fbSend: true, attributes: attrs);
     DSAdLocker.appOpenLockUntilAppResume();
@@ -807,8 +818,11 @@ class DSPurchaseManager extends ChangeNotifier {
       _inBuy = true;
       try {
         switch (product) {
+          case DSStubProduct():
+            DSMetrica.reportEvent('paywall_stub_buy', attributes: attrs);
+            return false;
           case DSAdaptyProduct():
-            final res = await Adapty().makePurchase(product: product.data);
+            final res = await Adapty().makePurchase(product: product.data, parameters: parameters);
             switch (res) {
               case AdaptyPurchaseResultUserCancelled():
                 DSMetrica.reportEvent('paywall_canceled_buy', attributes: attrs);
