@@ -372,7 +372,7 @@ class DSPurchaseManager extends ChangeNotifier {
           await Future.delayed(const Duration(milliseconds: 200));
         }
         final id = DSMetrica.userProfileID();
-        if (id != null && adaptyCustomUserId == null) {
+        if (id != null && adaptyCustomUserId == null && !DSMetrica.lockedMetricaProfile) {
           await Adapty().identify(id);
         }
 
