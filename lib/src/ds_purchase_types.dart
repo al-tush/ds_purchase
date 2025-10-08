@@ -23,10 +23,10 @@ typedef DSAdaptyProfile = AdaptyProfile;
 @immutable
 class DSPaywallPlacement {
   final String val;
-  final bool allowedForPremium;
+  final bool allowedForPlus;
 
   const DSPaywallPlacement(this.val, {
-    this.allowedForPremium = false,
+    this.allowedForPlus = false,
   });
 
   @override
@@ -73,6 +73,7 @@ sealed class DSProduct {
   bool get isSubscription;
   DSSubscriptionPeriod? get subscriptionPeriod;
   DSSubscriptionPeriod? get trialPeriod;
+  String? get basePlanId;
   String? get offerId;
   String? get subscriptionGroupIdentifierIOS;
   String? get localizedSubscriptionPeriod;
@@ -202,6 +203,8 @@ class DSAdaptyProduct extends DSProduct {
   // ToDo: TBD
   late final DSSubscriptionPeriod?  trialPeriod = isTrial ? data.subscription?.offer?.phases.first.subscriptionPeriod.let((v) => DSSubscriptionPeriod.fromAdapty(v)) : null;
   @override
+  String? get basePlanId => data.subscription?.basePlanId;
+  @override
   String? get offerId => data.subscription?.offer?.identifier.id;
   @override
   String? get subscriptionGroupIdentifierIOS => data.subscription?.groupIdentifier;
@@ -278,6 +281,8 @@ class DSInAppGoogleProduct extends DSInAppProduct {
   late final DSSubscriptionPeriod? subscriptionPeriod = offer?.let((v) => DSSubscriptionPeriod.fromInAppGoogle(v.pricingPhases));
 
   @override
+  String? basePlanId;
+  @override
   String? offerId;
   @override
   String? get subscriptionGroupIdentifierIOS => null;
@@ -309,6 +314,8 @@ class DSInAppAppleProduct extends DSInAppProduct {
 
   @override
   late final DSSubscriptionPeriod? subscriptionPeriod = appleData.skProduct.subscriptionPeriod?.let((v) => DSSubscriptionPeriod.fromInAppApple(v));
+  @override
+  String? basePlanId;
   @override
   String? offerId;
   @override
@@ -364,6 +371,8 @@ class DSInAppApple2Product extends DSInAppProduct {
   @override
   late final DSSubscriptionPeriod? subscriptionPeriod = appleData.sk2Product.subscription?.let((v) => DSSubscriptionPeriod.fromInAppApple2(v.subscriptionPeriod));
   @override
+  String? basePlanId;
+  @override
   String? offerId;
   @override
   // ToDo: TBD
@@ -381,6 +390,39 @@ class DSInAppApple2Product extends DSInAppProduct {
   String? get localizedTrialPeriod {
     throw Exception('Not implemented');
   }
+}
+
+class DSStubProduct extends DSProduct {
+  @override
+  String get id => 'stub';
+  @override
+  String? get basePlanId => '';
+  @override
+  String? get offerId => '';
+  @override
+  String get providerName => 'stub';
+  @override
+  double get price => 0;
+  @override
+  String? get currencyCode => '';
+  @override
+  String? get currencySymbol => '';
+  @override
+  bool get isSubscription => true;
+  @override
+  bool get isTrial => false;
+  @override
+  String? get localizedPrice => '';
+  @override
+  String? get localizedSubscriptionPeriod => '';
+  @override
+  String? get localizedTrialPeriod => '';
+  @override
+  String? get subscriptionGroupIdentifierIOS => '';
+  @override
+  DSSubscriptionPeriod? get subscriptionPeriod => null;
+  @override
+  DSSubscriptionPeriod? get trialPeriod => null;
 }
 
 enum DSSubscriptionUnit { month, year, week, day, unknown }
