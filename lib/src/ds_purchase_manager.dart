@@ -272,7 +272,7 @@ class DSPurchaseManager extends ChangeNotifier {
                 () async {
               if (_nativeRemoteConfig.isEmpty || providerMode == DSProviderMode.adaptyOnly) return;
               Fimber.i('Paywall: preload starting for $_nativePaywallId');
-              await _loadNativePaywall();
+              await _loadNativePaywall(isPreloading: true);
             }(),
                 () async {
               final ids = <String>{};
@@ -289,7 +289,7 @@ class DSPurchaseManager extends ChangeNotifier {
                   break;
                 }
                 Fimber.d('Paywall: preload starting for $_paywallId');
-                await _updatePaywall(allowFallbackNative: true, adaptyLoadTimeout: const Duration(seconds: 10));
+                await _updatePaywall(allowFallbackNative: true, adaptyLoadTimeout: const Duration(seconds: 10), isPreloading: true);
                 if (purchasesDisabled) {
                   Fimber.d('Paywall: preload has broken', stacktrace: StackTrace.current);
                   break;
@@ -472,7 +472,9 @@ class DSPurchaseManager extends ChangeNotifier {
     }());
   }
 
-  Future<bool> _loadNativePaywall() async {
+  Future<bool> _loadNativePaywall({
+    required bool isPreloading,
+  }) async {
     final config = _nativeRemoteConfig;
     if (config.isEmpty) {
       _paywall = null;
@@ -524,10 +526,12 @@ class DSPurchaseManager extends ChangeNotifier {
       );
       _paywallsCache[pwId] = pw;
       if (pwId != _paywallId) {
-        Fimber.w('Paywall changed while loading', stacktrace: StackTrace.current, attributes: {
-          'new_paywall_id': _paywallId,
-          'paywall_id': pwId,
-        });
+        if (!isPreloading) {
+          Fimber.w('Paywall changed while loading', stacktrace: StackTrace.current, attributes: {
+            'new_paywall_id': _paywallId,
+            'paywall_id': pwId,
+          });
+        }
         return false;
       }
       _paywall = pw;
@@ -538,7 +542,11 @@ class DSPurchaseManager extends ChangeNotifier {
     }
   }
 
-  Future<bool> _loadAdaptyPaywall(String lang, {required Duration loadTimeout}) async {
+  Future<bool> _loadAdaptyPaywall({
+    required String lang,
+    required Duration loadTimeout,
+    required bool isPreloading,
+  }) async {
     try {
       final pwId = _paywallId;
       final paywall = await Adapty().getPaywall(placementId: pwId, locale: lang, loadTimeout: loadTimeout);
@@ -549,10 +557,12 @@ class DSPurchaseManager extends ChangeNotifier {
       );
       _paywallsCache[pwId] = pw;
       if (pwId != _paywallId) {
-        Fimber.w('Paywall changed while loading', stacktrace: StackTrace.current, attributes: {
-          'new_paywall_id': _paywallId,
-          'paywall_id': pwId,
-        });
+        if (!isPreloading) {
+          Fimber.w('Paywall changed while loading', stacktrace: StackTrace.current, attributes: {
+            'new_paywall_id': _paywallId,
+            'paywall_id': pwId,
+          });
+        }
         return false;
       }
       _paywall = pw;
@@ -570,7 +580,11 @@ class DSPurchaseManager extends ChangeNotifier {
 
   var _loadingPaywallId = '';
 
-  Future<void> _updatePaywall({required bool allowFallbackNative, required Duration adaptyLoadTimeout}) async {
+  Future<void> _updatePaywall({
+    required bool allowFallbackNative,
+    required Duration adaptyLoadTimeout,
+    required bool isPreloading,
+  }) async {
     _paywall = null;
     if (purchasesDisabled) return;
 
@@ -594,12 +608,12 @@ class DSPurchaseManager extends ChangeNotifier {
       if ((providerMode == DSProviderMode.nativeFirst) && allowFallbackNative) {
         if (_nativeRemoteConfig.isEmpty) {
           Fimber.e('nativeRemoteConfig not assigned', stacktrace: StackTrace.current);
-        } else if (await _loadNativePaywall()) {
+        } else if (await _loadNativePaywall(isPreloading: isPreloading)) {
           return;
         }
       }
 
-      if (await _loadAdaptyPaywall(lang, loadTimeout: adaptyLoadTimeout)) {
+      if (await _loadAdaptyPaywall(lang: lang, loadTimeout: adaptyLoadTimeout, isPreloading: isPreloading)) {
         return;
       }
 
@@ -607,7 +621,7 @@ class DSPurchaseManager extends ChangeNotifier {
         if (_nativeRemoteConfig.isEmpty) {
           Fimber.e('nativeRemoteConfig not assigned', stacktrace: StackTrace.current);
         } else {
-          await _loadNativePaywall();
+          await _loadNativePaywall(isPreloading: isPreloading);
         }
         return;
       }
@@ -654,11 +668,19 @@ class DSPurchaseManager extends ChangeNotifier {
       return;
     }
 
-    await _updatePaywall(allowFallbackNative: allowFallbackNative, adaptyLoadTimeout: const Duration(seconds: 1));
+    await _updatePaywall(
+      allowFallbackNative: allowFallbackNative,
+      adaptyLoadTimeout: const Duration(seconds: 1),
+      isPreloading: false,
+    );
   }
 
   Future<void> reloadPaywall({bool allowFallbackNative = true}) async {
-    await _updatePaywall(allowFallbackNative: allowFallbackNative, adaptyLoadTimeout: const Duration(seconds: 1));
+    await _updatePaywall(
+        allowFallbackNative: allowFallbackNative,
+        adaptyLoadTimeout: const Duration(seconds: 1),
+      isPreloading: false,
+    );
   }
 
   Future<bool> tryShowPaywallBuilder() async {
