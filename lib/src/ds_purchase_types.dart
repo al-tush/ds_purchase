@@ -23,10 +23,10 @@ typedef DSAdaptyProfile = AdaptyProfile;
 @immutable
 class DSPaywallPlacement {
   final String val;
-  final bool allowedForPlus;
+  final int allowedForPremium; // 0 - not allowed; not 0 - allowed
 
   const DSPaywallPlacement(this.val, {
-    this.allowedForPlus = false,
+    this.allowedForPremium = 0,
   });
 
   @override

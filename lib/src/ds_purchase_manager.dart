@@ -111,13 +111,30 @@ class DSPurchaseManager extends ChangeNotifier {
 
   DSPaywall? _paywall;
   DSAdaptyProfile? _adaptyProfile;
+  int _paywallChainLevel = 0;
 
   DSPaywall? get paywall => _paywall;
 
   String get placementId => _paywall?.placementId ?? 'not_loaded';
   String get placementDefinedId => _paywallId;
 
-  Map<String, dynamic> get remoteConfig => _paywall?.remoteConfig ?? {};
+  /// Current item in paywall_chain list
+  int get paywallChainLevel => _paywallChainLevel;
+  /// remote config for paywallChainLevel
+  Map<String, dynamic> get remoteConfig {
+    var data = rootRemoteConfig;
+    for (var i = 1; i <= _paywallChainLevel; i++) {
+      final next = data['paywall_chain'];
+      if (next == null) {
+        throw Exception('paywall_chain not found for level $i');
+      }
+      data = next;
+    }
+    return data;
+  }
+
+  /// remote config for root level of paywall_chain
+  Map<String, dynamic> get rootRemoteConfig => _paywall?.remoteConfig ?? {};
 
   @Deprecated('Use placementDefinedId')
   String get paywallDefinedId => placementDefinedId;
@@ -130,12 +147,17 @@ class DSPurchaseManager extends ChangeNotifier {
 
   List<DSProduct>? get products => paywall?.products;
 
+  /// Return Adapty profile. If it not initialized yet - throw exception
   DSAdaptyProfile get adaptyProfile {
     final p = _adaptyProfile;
     if (p == null) throw Exception('Adapty profile is not initialized yet');
     return p;
   }
 
+  /// Return Adapty profile. If it not initialized yet - return null
+  DSAdaptyProfile? get adaptyProfileOpt => _adaptyProfile;
+
+  /// Return actual  Adapty profile
   Future<DSAdaptyProfile> getAdaptyProfile() async {
     _adaptyProfile ??= await Adapty().getProfile();
     return _adaptyProfile!;
@@ -289,7 +311,12 @@ class DSPurchaseManager extends ChangeNotifier {
                   break;
                 }
                 Fimber.d('Paywall: preload starting for $_paywallId');
-                await _updatePaywall(allowFallbackNative: true, adaptyLoadTimeout: const Duration(seconds: 10), isPreloading: true);
+                await _updatePaywall(
+                  allowFallbackNative: true,
+                  adaptyLoadTimeout: const Duration(seconds: 10),
+                  isPreloading: true,
+                  paywallChainLevel: 0,
+                );
                 if (purchasesDisabled) {
                   Fimber.d('Paywall: preload has broken', stacktrace: StackTrace.current);
                   break;
@@ -584,6 +611,7 @@ class DSPurchaseManager extends ChangeNotifier {
     required bool allowFallbackNative,
     required Duration adaptyLoadTimeout,
     required bool isPreloading,
+    required int paywallChainLevel,
   }) async {
     _paywall = null;
     if (purchasesDisabled) return;
@@ -594,7 +622,14 @@ class DSPurchaseManager extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    if (_loadingPaywallId == pwId) return;
+    
+    if (_loadingPaywallId == pwId) {
+      if (_paywallChainLevel != paywallChainLevel) {
+        _paywallChainLevel = paywallChainLevel;
+        notifyListeners();
+      }
+      return;
+    }
 
     final lang = localeCallback().languageCode;
     try {
@@ -653,18 +688,23 @@ class DSPurchaseManager extends ChangeNotifier {
     return _paywallsCache[id] != null;
   }
 
-  Future<void> changePaywall(final DSPaywallPlacement paywallType, {bool allowFallbackNative = true}) async {
+  Future<void> changePaywall(final DSPaywallPlacement paywallType, {
+    bool allowFallbackNative = true,
+    int paywallChainLevel = 0,
+  }) async {
     _isPreloadingPaywalls = false;
-    if (isPremium && !paywallType.allowedForPlus) return;
+    if (isPremium && (paywallType.allowedForPremium == 0)) return;
     final id = getPlacementId(paywallType);
-    if (id == _paywallId && (paywall != null || _loadingPaywallId == id)) return;
+    if (id == _paywallId && paywallChainLevel == _paywallChainLevel && (paywall != null || _loadingPaywallId == id)) return;
     DSMetrica.reportEvent('Paywall: changed to $id', attributes: {
       'prev_paywall': _paywallId,
+      'chain_level': paywallChainLevel,
       'cached': _paywallsCache[id] != null,
     });
     _paywallId = id;
     if (_paywallsCache[id] != null) {
       _paywall = _paywallsCache[id];
+      _paywallChainLevel = paywallChainLevel;
       return;
     }
 
@@ -672,14 +712,16 @@ class DSPurchaseManager extends ChangeNotifier {
       allowFallbackNative: allowFallbackNative,
       adaptyLoadTimeout: const Duration(seconds: 1),
       isPreloading: false,
+      paywallChainLevel: paywallChainLevel,
     );
   }
 
   Future<void> reloadPaywall({bool allowFallbackNative = true}) async {
     await _updatePaywall(
-        allowFallbackNative: allowFallbackNative,
-        adaptyLoadTimeout: const Duration(seconds: 1),
+      allowFallbackNative: allowFallbackNative,
+      adaptyLoadTimeout: const Duration(seconds: 1),
       isPreloading: false,
+      paywallChainLevel: paywallChainLevel,
     );
   }
 
