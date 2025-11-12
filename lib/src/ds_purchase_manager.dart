@@ -62,7 +62,7 @@ class DSPurchaseManager extends ChangeNotifier {
     _oneSignalChanged = oneSignalChanged;
     _nativeRemoteConfig = nativeRemoteConfig?.let((v) => jsonDecode(v)) ?? {};
 
-    _paywallId = '';
+    _placementDefinedId = '';
     _initPaywalls = initPaywalls;
 
     _instance ??= this;
@@ -105,7 +105,7 @@ class DSPurchaseManager extends ChangeNotifier {
 
   bool get purchasesDisabled => _purchasesDisabled;
 
-  var _paywallId = '';
+  var _placementDefinedId = '';
   DSPaywallPlacementTranslator? _paywallPlacementTranslator;
   late final Set<DSPaywallPlacement> _initPaywalls;
 
@@ -116,7 +116,7 @@ class DSPurchaseManager extends ChangeNotifier {
   DSPaywall? get paywall => _paywall;
 
   String get placementId => _paywall?.placementId ?? 'not_loaded';
-  String get placementDefinedId => _paywallId;
+  String get placementDefinedId => _placementDefinedId;
 
   /// Current item in paywall_chain list
   int get paywallChainLevel => _paywallChainLevel;
@@ -143,7 +143,7 @@ class DSPurchaseManager extends ChangeNotifier {
 
   String get paywallType => '${remoteConfig['type'] ?? 'not_defined'}';
   String get paywallIdType => '$placementId/$paywallType';
-  String get paywallVariant => '${remoteConfig['variant_paywall'] ?? 'default'}';
+  String get paywallVariant => '${remoteConfig['variant_paywall'] ?? 'default'}'; // deprecated
 
   List<DSProduct>? get products => paywall?.products;
 
@@ -303,14 +303,14 @@ class DSPurchaseManager extends ChangeNotifier {
                   Fimber.d('Paywall: preload breaked by premium');
                   break;
                 }
-                _paywallId = getPlacementId(pw);
-                if (ids.contains(_paywallId)) continue;
-                ids.add(_paywallId);
+                _placementDefinedId = getPlacementId(pw);
+                if (ids.contains(_placementDefinedId)) continue;
+                ids.add(_placementDefinedId);
                 if (!_isPreloadingPaywalls) {
-                  Fimber.d('Paywall: preload breaked since $_paywallId');
+                  Fimber.d('Paywall: preload breaked since $_placementDefinedId');
                   break;
                 }
-                Fimber.d('Paywall: preload starting for $_paywallId');
+                Fimber.d('Paywall: preload starting for $_placementDefinedId');
                 await _updatePaywall(
                   allowFallbackNative: true,
                   adaptyLoadTimeout: const Duration(seconds: 10),
@@ -514,8 +514,8 @@ class DSPurchaseManager extends ChangeNotifier {
         return false;
       }
 
-      _paywallId = _nativePaywallId;
-      final pwId = _paywallId;
+      _placementDefinedId = _nativePaywallId;
+      final pwId = _placementDefinedId;
       final res = await InAppPurchase.instance.queryProductDetails((prods as List).map((e) => e['product_id'] as String).toSet());
       if (res.notFoundIDs.isNotEmpty) {
         Fimber.e('in_app_purchase products not found', attributes: {
@@ -552,11 +552,11 @@ class DSPurchaseManager extends ChangeNotifier {
         inAppProducts: products,
       );
       _paywallsCache[pwId] = pw;
-      if (pwId != _paywallId) {
+      if (pwId != placementDefinedId) {
         if (!isPreloading) {
           Fimber.w('Paywall changed while loading', stacktrace: StackTrace.current, attributes: {
-            'new_paywall_id': _paywallId,
-            'paywall_id': pwId,
+            'new_placement': placementDefinedId,
+            'old_placement': pwId,
           });
         }
         return false;
@@ -575,7 +575,7 @@ class DSPurchaseManager extends ChangeNotifier {
     required bool isPreloading,
   }) async {
     try {
-      final pwId = _paywallId;
+      final pwId = placementDefinedId;
       final paywall = await Adapty().getPaywall(placementId: pwId, locale: lang, loadTimeout: loadTimeout);
       final products = await Adapty().getPaywallProducts(paywall: paywall);
       final pw = DSAdaptyPaywall(
@@ -583,11 +583,11 @@ class DSPurchaseManager extends ChangeNotifier {
         adaptyProducts: products.map((e) => DSAdaptyProduct(data: e)).toList(),
       );
       _paywallsCache[pwId] = pw;
-      if (pwId != _paywallId) {
+      if (pwId != placementDefinedId) {
         if (!isPreloading) {
           Fimber.w('Paywall changed while loading', stacktrace: StackTrace.current, attributes: {
-            'new_paywall_id': _paywallId,
-            'paywall_id': pwId,
+            'new_placement': placementDefinedId,
+            'old_placement': pwId,
           });
         }
         return false;
@@ -600,7 +600,7 @@ class DSPurchaseManager extends ChangeNotifier {
           _purchasesDisabled = true;
         }
       }
-      Fimber.e('adapty placement $_paywallId error: $e', stacktrace: stack);
+      Fimber.e('adapty placement $placementDefinedId error: $e', stacktrace: stack);
       return false;
     }
   }
@@ -616,9 +616,9 @@ class DSPurchaseManager extends ChangeNotifier {
     _paywall = null;
     if (purchasesDisabled) return;
 
-    final pwId = _paywallId;
+    final pwId = placementDefinedId;
     if (pwId.isEmpty) {
-      logDebug('Empty paywall id');
+      logDebug('Empty placement id');
       notifyListeners();
       return;
     }
@@ -666,15 +666,17 @@ class DSPurchaseManager extends ChangeNotifier {
         DSMetrica.reportEvent('Paywall: paywall data updated', attributes: {
           'language': lang,
           'provider': '${_paywall?.providerName}',
-          'paywall_id': pwId,
-          if (pwId != _paywallId)
-            'actual_paywall_id': _paywallId,
+          'placement_adapty': pwId,
+
+          if (pwId != placementDefinedId)
+            'placement_app': placementDefinedId,
           'paywall_type': paywallType,
+          'paywall_name': '${_paywall?.name}',
           'paywall_pages': '${(remoteConfig['pages'] as List?)?.length}',
           'paywall_items_md': '${(remoteConfig['items_md'] as List?)?.length}',
           'paywall_products': _paywall?.products.length ?? -1,
           'paywall_offer_buttons': '${(remoteConfig['offer_buttons'] as List?)?.length}',
-          'variant_paywall': paywallVariant,
+          'variant_paywall': paywallVariant, // deprecated
           if (_paywall is DSAdaptyPaywall)
             'paywall_builder': '${(_paywall as DSAdaptyPaywall).hasPaywallBuilder}',
         });
@@ -695,13 +697,13 @@ class DSPurchaseManager extends ChangeNotifier {
     _isPreloadingPaywalls = false;
     if (isPremium && (paywallType.allowedForPremium == 0)) return;
     final id = getPlacementId(paywallType);
-    if (id == _paywallId && paywallChainLevel == _paywallChainLevel && (paywall != null || _loadingPaywallId == id)) return;
+    if (id == placementDefinedId && paywallChainLevel == _paywallChainLevel && (paywall != null || _loadingPaywallId == id)) return;
     DSMetrica.reportEvent('Paywall: changed to $id', attributes: {
-      'prev_paywall': _paywallId,
+      'placement_app': placementDefinedId,
       'chain_level': paywallChainLevel,
       'cached': _paywallsCache[id] != null,
     });
-    _paywallId = id;
+    _placementDefinedId = id;
     if (_paywallsCache[id] != null) {
       _paywall = _paywallsCache[id];
       _paywallChainLevel = paywallChainLevel;
@@ -729,13 +731,13 @@ class DSPurchaseManager extends ChangeNotifier {
     final pw = _paywall;
     if (pw == null) {
       Fimber.e('Paywall is not ready', attributes: {
-        'paywall_id': _paywallId,
+        'placement': placementDefinedId,
       });
       return false;
     }
     if (pw is! DSAdaptyPaywall) {
       Fimber.e('Paywall is not Adapty', attributes: {
-        'paywall_id': _paywallId,
+        'placement': placementDefinedId,
       });
       return false;
     }
@@ -867,13 +869,14 @@ class DSPurchaseManager extends ChangeNotifier {
 
     final attrs = {
       'provider': product.providerName,
-      'paywall_id': placementId,
+      'placement_adapty': placementId,
       'vendor_product': product.id,
       'paywall_type': paywallType,
-      'variant_paywall': paywallVariant,
+      'variant_paywall': paywallVariant, // deprecated
       'vendor_base_plan_id': product.basePlanId ?? 'null',
       'vendor_offer_id': product.offerId ?? 'null',
-      'placement': placementDefinedId,
+      'placement_app': placementDefinedId,
+      'paywall_name': product.paywallName,
       'is_trial': isTrial ? 1 : 0,
       'is_subscription': product.isSubscription ? 1 : 0,
       if (parameters != null)

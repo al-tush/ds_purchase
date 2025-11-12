@@ -48,6 +48,7 @@ enum DSProviderMode {
 sealed class DSProduct {
   String get id;
   String get providerName;
+  String get paywallName;
   double get price;
   String? get currencyCode;
   String? get currencySymbol;
@@ -150,7 +151,7 @@ class DSAdaptyPaywall extends DSPaywall {
   List<DSProduct> get products => adaptyProducts.cast<DSProduct>();
 
   String get paywallType => '${remoteConfig['type'] ?? 'not_defined'}';
-  String get paywallVariant => '${remoteConfig['variant_paywall'] ?? 'default'}';
+  String get paywallVariant => '${remoteConfig['variant_paywall'] ?? 'default'}'; // deprecated
 
   bool get hasPaywallBuilder => data.hasViewConfiguration;
 }
@@ -176,7 +177,7 @@ class DSInAppPaywall extends DSPaywall {
   List<DSProduct> get products => inAppProducts.cast<DSProduct>();
 
   String get paywallType => '${remoteConfig['type'] ?? 'not_defined'}';
-  String get paywallVariant => '${remoteConfig['variant_paywall'] ?? 'default'}';
+  String get paywallVariant => '${remoteConfig['variant_paywall'] ?? 'default'}'; // deprecated
 }
 
 class DSAdaptyProduct extends DSProduct {
@@ -189,6 +190,8 @@ class DSAdaptyProduct extends DSProduct {
   String get id => data.vendorProductId;
   @override
   String get providerName => 'adapty';
+  @override
+  String get paywallName => data.paywallName;
   @override
   double get price => data.price.amount;
   @override
@@ -237,6 +240,9 @@ sealed class DSInAppProduct extends DSProduct {
 
   @override
   String get providerName => 'native';
+
+  @override
+  String get paywallName => 'native_in_app';
 
   @override
   double get price => data.rawPrice;
@@ -401,6 +407,8 @@ class DSStubProduct extends DSProduct {
   String? get offerId => '';
   @override
   String get providerName => 'stub';
+  @override
+  String get paywallName => 'stub';
   @override
   double get price => 0;
   @override
