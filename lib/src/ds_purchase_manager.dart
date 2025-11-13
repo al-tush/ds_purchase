@@ -818,6 +818,7 @@ class DSPurchaseManager extends ChangeNotifier {
   Future<bool> buy({
     required DSProduct product,
     AdaptyPurchaseParameters? parameters,
+    Map<String, Object>? customAttributes,
   }) async {
     if (_inBuy) {
       Fimber.w('duplicated buy call', stacktrace: StackTrace.current);
@@ -881,6 +882,7 @@ class DSPurchaseManager extends ChangeNotifier {
       'is_subscription': product.isSubscription ? 1 : 0,
       if (parameters != null)
         'adapty_parameters': '$parameters',
+      ...customAttributes,
     };
     DSMetrica.reportEvent('paywall_buy', fbSend: true, attributes: attrs);
     DSAdLocker.appOpenLockUntilAppResume();
