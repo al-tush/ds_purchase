@@ -224,7 +224,8 @@ class DSAdaptyProduct extends DSProduct {
   String? get localizedPrice => data.price.localizedString;
 
   @override
-  bool get isTrial => data.subscription?.offer?.identifier.type == AdaptySubscriptionOfferType.introductory;
+  bool get isTrial => data.subscription?.offer?.identifier.type == AdaptySubscriptionOfferType.introductory
+      && (data.subscription?.offer?.identifier.id ?? '').isNotEmpty;
   @override
   String? get localizedTrialPeriod {
     if (!isTrial) return null;
