@@ -299,10 +299,7 @@ class DSPurchaseManager extends ChangeNotifier {
                 () async {
               final ids = <String>{};
               for (final pw in _initPaywalls) {
-                if (isPremium) {
-                  Fimber.d('Paywall: preload breaked by premium');
-                  break;
-                }
+                if (isPremium && (pw.allowedForPremium == 0)) continue;
                 _placementDefinedId = getPlacementId(pw);
                 if (ids.contains(_placementDefinedId)) continue;
                 ids.add(_placementDefinedId);
